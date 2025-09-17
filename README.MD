@@ -32,36 +32,60 @@ Built to refresh my backend development skills and demonstrate API/database inte
 
 4. API available at http://localhost:3000
 
+---
+
 ## Example Requests
 
 ### Create a New Order
 **POST** `/orders`  
 Body:
 ```json
-{ "customer": "Dell", "status": "Processing" }
+{
+  "customer": "Dell",
+  "status": "Processing"
+}
 
 Response:
 ```json
-{ "id": 1, "customer": "Dell", "status": "Processing" }
+{
+  "id": 1,
+  "customer": "Dell",
+  "status": "Processing"
+}
 
 ### Get All Orders
 **GET** `/orders`  
 Response:
 ```json
-  { "id": 1, "customer": "Dell", "status": "Processing" }
+ [
+  {
+    "id": 1,
+    "customer": "Dell",
+    "status": "Processing"
+  }
+]
 
 ### Get Order by ID
 **GET** `/orders/1`
 Response:
 ```json
-{ "id": 1, "customer": "Dell", "status": "Processing" }
+{
+  "id": 1,
+  "customer": "Dell",
+  "status": "Processing"
+}
 
 ### Update an Order
 **PUT** `/orders/1` 
 Body:
 ```json
-{ "status": "Shipped" }
+{
+  "status": "Shipped"
+}
 
 Response:
 ```json
-{ "id": "1", "status": "Shipped" }
+{
+  "id": "1",
+  "status": "Shipped"
+}
