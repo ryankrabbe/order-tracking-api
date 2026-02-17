@@ -1,3 +1,13 @@
+const VALID_STATUSES = ["CREATED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"];
+
+const ALLOWED_TRANSITIONS = {
+  CREATED: ["PROCESSING", "CANCELLED"],
+  PROCESSING: ["SHIPPED", "CANCELLED"],
+  SHIPPED: ["DELIVERED"],
+  DELIVERED: [],
+  CANCELLED: []
+};
+
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 
@@ -50,13 +60,55 @@ app.post("/orders", (req, res) => {
 // Update order status
 app.put("/orders/:id", (req, res) => {
   const { status } = req.body;
-  db.run("UPDATE orders SET status = ? WHERE id = ?", 
-    [status, req.params.id],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      if (this.changes === 0) return res.status(404).json({ error: "Order not found" });
-      res.json({ id: req.params.id, status });
+
+  const VALID_STATUSES = ["CREATED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"];
+
+  const ALLOWED_TRANSITIONS = {
+    CREATED: ["PROCESSING", "CANCELLED"],
+    PROCESSING: ["SHIPPED", "CANCELLED"],
+    SHIPPED: ["DELIVERED"],
+    DELIVERED: [],
+    CANCELLED: []
+  };
+
+  if (!VALID_STATUSES.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid order status"
     });
+  }
+
+  db.get("SELECT * FROM orders WHERE id = ?", [req.params.id], (err, order) => {
+    if (err) return res.status(500).json({ success: false, message: err.message });
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+
+    const currentStatus = order.status;
+
+    if (!ALLOWED_TRANSITIONS[currentStatus].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot transition from ${currentStatus} to ${status}`
+      });
+    }
+
+    db.run(
+      "UPDATE orders SET status = ? WHERE id = ?",
+      [status, req.params.id],
+      function (err) {
+        if (err) return res.status(500).json({ success: false, message: err.message });
+
+        res.json({
+          success: true,
+          data: {
+            id: req.params.id,
+            previousStatus: currentStatus,
+            newStatus: status
+          }
+        });
+      }
+    );
+  });
 });
+
 
 app.listen(3000, () => console.log("🚀 Server running at http://localhost:3000"));
